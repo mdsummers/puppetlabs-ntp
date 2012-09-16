@@ -37,7 +37,9 @@ describe 'ntp' do
       describe "for operating system #{os}" do
 
         let(:params) {{}}
-        let(:facts) { { :operatingsystem => os } }
+        let(:facts) { { :operatingsystem        => os,
+                        :osfamily               => 'RedHat',
+                        :operatingsystemrelease => 5.4 } }
 
         it { should contain_service('ntp').with_name('ntpd') }
         it 'should use the redhat ntp servers by default' do
@@ -46,6 +48,17 @@ describe 'ntp' do
            'server 0.centos.pool.ntp.org',
            'server 1.centos.pool.ntp.org',
            'server 2.centos.pool.ntp.org']
+          (content.split("\n") & expected_lines).should == expected_lines
+        end
+        it { should contain_file('/etc/ntp/step-tickers').with_owner('0') }
+        it { should contain_file('/etc/ntp/step-tickers').with_group('0') }
+        it { should contain_file('/etc/ntp/step-tickers').with_mode('0644') }
+        it 'should use the redhat ntp servers by default' do
+          content = param_value(subject, 'file', '/etc/ntp/step-tickers', 'content')
+          expected_lines = [
+           '0.centos.pool.ntp.org',
+           '1.centos.pool.ntp.org',
+           '2.centos.pool.ntp.org']
           (content.split("\n") & expected_lines).should == expected_lines
         end
       end

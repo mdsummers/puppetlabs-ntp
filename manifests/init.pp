@@ -78,6 +78,14 @@ class ntp($servers='UNSET',
       } else {
         $servers_real = $servers
       }
+      if ($::osfamily == 'RedHat') {
+        case $::operatingsystemrelease {
+          /^5\./: {
+            $step_tickers     = '/etc/ntp/step-tickers'
+            $step_tickers_tpl = 'step-tickers.el.erb'
+          }
+        }
+      }
     }
     freebsd: {
       $supported  = true
@@ -116,6 +124,17 @@ class ntp($servers='UNSET',
       mode    => '0644',
       content => template("${module_name}/${config_tpl}"),
       require => Package[$pkg_name],
+    }
+
+    if ($step_tickers != undef) {
+      file { $step_tickers:
+        ensure  => file,
+        owner   => 0,
+        group   => 0,
+        mode    => '0644',
+        content => template("${module_name}/${step_tickers_tpl}"),
+        require => Package[$pkg_name],
+      }
     }
 
     service { 'ntp':
